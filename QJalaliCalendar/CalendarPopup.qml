@@ -40,9 +40,12 @@ Popup {
     property var todayNumber: DateConversion.dayNumber(todayYear, todayMonth, todayDay)
     property var todayName: DateConversion.dayOfWeek(todayYear, todayMonth, todayDay)
 
+    property variant ptyExistDate    : []
+
 //    property var todayName: DateConversion.dayOfWeek(todayYear, todayMonth, todayDay)
 
     signal dateSelected
+    signal monthChanged(var month)
 
     clip: true
 
@@ -54,7 +57,7 @@ Popup {
 
         destroyCells()
         createCells()
-
+        monthChanged(todayMonth)
     }
 
     function previousMonth() {
@@ -66,6 +69,7 @@ Popup {
 
         destroyCells()
         createCells()
+        monthChanged(todayMonth)
     }
 
     function selectedCellChanged(x,type) {
@@ -165,6 +169,8 @@ Popup {
             gridId.children[todayNumber].children[parseInt((todayDay / 7) + 2)].color = selectedDayColor;
         }
     }
+
+
     contentItem: Item {
 
         Component {
