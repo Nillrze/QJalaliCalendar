@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>CalendarPopup.qml</file>
+        <file>date-conversion.js</file>
+        <file>images/next.png</file>
+    </qresource>
+</RCC>
