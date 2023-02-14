@@ -14,11 +14,18 @@ Popup {
     background: Rectangle { id: backgroundRect; color: backgroundColor; radius: 4; border.width: 1; border.color: "#4C4C4C" }
     closePolicy: Popup.CloseOnEscape //|| Popup.CloseOnPressOutsideParent
 
+    Component.onCompleted:
+        console.log("onCompleted ")
 
-    property int cellWidth: 32
+    onOpened:
+        console.log("onOpened ")
+
+    property int   cellWidth: 32
+    property bool  isStatic: true
     property color dayColor: "transparent"
     property color selectedDayColor: "#1FBE72"
-    property color daysTextColor: "#ffffff"
+    property color existedDayColor: Qt.rgba(255,255,255, 0.1)
+    property color daysTextColor: "#FFFFFF"
     property color disableDaysTextColor: "#808080"
     property color backgroundColor: "#333333"
 
@@ -31,6 +38,7 @@ Popup {
     property var fri
 
     property var currentDate: DateConversion.today()
+    property var selectDate: currentDate
     property int todayYear: currentDate["y"]
     property int todayMonth: currentDate["m"]
     property int todayDay: currentDate["d"]
@@ -42,7 +50,7 @@ Popup {
 
     property variant ptyExistDate    : []
 
-//    property var todayName: DateConversion.dayOfWeek(todayYear, todayMonth, todayDay)
+    //    property var todayName: DateConversion.dayOfWeek(todayYear, todayMonth, todayDay)
 
     signal dateSelected
     signal monthChanged(var month)
@@ -80,12 +88,14 @@ Popup {
 
         for (i = 0; i < 6; i++) {
             for (j = 0; j < 7; j++) {
-                if (!type || counter > daysInMonth ) //nill remove daysInMonth-1
+                if (!type || counter > daysInMonth-1 ) //nill remove daysInMonth-1 (daysInMonth == 31 ? 0 : 1)
                     break;
 
                 if (x === gridId.children[j].children[i + 1].children[0].text
                         && gridId.children[j].children[i + 1].children[0].isEnable) {
                     gridId.children[j].children[i + 1].color = selectedDayColor
+                    console.log("y", todayYear, "m", todayMonth, "d", x)
+                    selectDate  = {"y": todayYear, "m": todayMonth, "d": x}
                     currentDate = {"y": todayYear, "m": todayMonth, "d": x}
                 } else {
                     gridId.children[j].children[i + 1].color = dayColor
@@ -144,6 +154,8 @@ Popup {
                     if ((j === firstDayOfMonth && counter === 1) ||
                             (counter > 1 && counter <= daysInMonth)) {
                         gridId.children[j].children[i + 1].children[0].text = counter;
+                        if(checkdayExist(todayYear,todayMonth,counter) && isStatic)
+                            gridId.children[j].children[i + 1].color = existedDayColor
                         counter++;
                     }
                     else if ((counter > 28 )){
@@ -160,16 +172,29 @@ Popup {
                     }
                 }
             }
+        }
+        var todaySelect = DateConversion.dayNumber(Number(selectDate["y"]), Number(selectDate["m"]), Number(selectDate["d"]))
+        if (!isStatic && Number(selectDate["m"] === todayMonth) && Number(selectDate["y"] === todayYear)) {
+            if ( gridId.children[todaySelect].children[parseInt((selectDate["d"] / 7) + 1)].children[0].isEnabled  )
+                gridId.children[todaySelect].children[parseInt((Number(selectDate["d"]) / 7) + 1)].color = selectedDayColor;
+            else
+                gridId.children[todaySelect].children[parseInt((Number(selectDate["d"]) / 7) + 2)].color = selectedDayColor;
 
         }
-
-        if (gridId.children[todayNumber].children[parseInt((todayDay / 7) + 1)].children[0].text !== "") {
-            gridId.children[todayNumber].children[parseInt((todayDay / 7) + 1)].color = selectedDayColor;
-        } else {
-            gridId.children[todayNumber].children[parseInt((todayDay / 7) + 2)].color = selectedDayColor;
-        }
+        //        else {
+        //            gridId.children[todayNumber].children[parseInt((todayDay / 7) + 2)].color = selectedDayColor;
+        //        }
     }
 
+    function checkdayExist(year,month,day)
+    {
+        for(var i=0; i < ptyExistDate.length; i++) {
+            var splitedDay = ptyExistDate[i].split('-')
+            if( Number(splitedDay[0]) === year && Number(splitedDay[1]) === month && Number(splitedDay[2]) === day )
+                return true
+        }
+        return false
+    }
 
     contentItem: Item {
 
@@ -183,7 +208,7 @@ Popup {
                 color: dayColor
 
                 Text {
-                    property bool isEnable: true
+                    property bool isEnable: !isStatic
                     text: ""
                     font.pointSize: 11
                     color: daysTextColor
@@ -221,7 +246,7 @@ Popup {
 
                 Rectangle {
                     width: cellWidth
-                    height: cellWidth// calverhor(12)
+                    height: cellWidth
                     color: dayColor
 
                     Text {
@@ -306,5 +331,4 @@ Popup {
             }
         }
     }
-
 }
